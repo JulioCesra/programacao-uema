@@ -11,6 +11,7 @@ Agradecemos a todas as pessoas incríveis que contribuem para este projeto!
 
 ## 🤝 Como se tornar um contribuidor?
 
-Consulte nosso [Guia de Contribuição](guia-contribuicao.md) para saber como participar!
+Consulte nosso [Guia de Contribuição](docs/guia-contribuicao.md) para saber como participar!
+
 
 

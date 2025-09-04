@@ -8,91 +8,133 @@ b) Buscar um aluno pela matrícula
 c) Calcular a média das notas de um aluno
     A função recebe um aluno e retorna a média.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// Criação de uma struct denomidada "Aluno" com as seguintes variáveis: nome, matrícula, nota1, nota2 e nota 3
 typedef struct {
     char *nome;
     int matricula;
     float nota1, nota2, nota3;
 } Aluno;
 
-// Criação da função que retorna um ponteiro p do tipo Aluno
-Aluno *inserir_novo_aluno(char *nome, int matricula, float nota1, float nota2, float nota3) {
-    // Realizando a alocação dinâmica da memória de acordo com a quantidade de alunos
-    Aluno *p = (Aluno *)malloc(sizeof(Aluno));
-    // Verificação se o ponteiro não é nulo
-    if (p == NULL) {
-        return NULL;
-    }
-    // Alocação dinâmica para o ponteiro responsável pelo nome
-    p->nome = malloc(strlen(nome) + 1);
-    // Copia o nome passado através dos parâmetros da função para a variável "nome" que o ponteiro está guardando o endereço
-    strcpy(p->nome, nome);
-    // Armazena a matricula
-    p->matricula = matricula;
-    // Armazena as três variáveis de nota do aluno
-    p->nota1 = nota1;
-    p->nota2 = nota2;
-    p->nota3 = nota3;
+// Função para inserir aluno no vetor (realoca automaticamente)
+Aluno* inserir_aluno(Aluno *alunos, int *tamanho, int *capacidade,
+                    char *nome, int matricula, float nota1, float nota2, float nota3) {
 
-    // Retorna o ponteiro p
-    return p;
+    // Verifica se precisa aumentar o vetor
+    if (*tamanho >= *capacidade) {
+        *capacidade += 2; // Aumenta a capacidade em 2
+        alunos = (Aluno*)realloc(alunos, (*capacidade) * sizeof(Aluno));
+
+        if (alunos == NULL) {
+            printf("Erro ao realocar memória!\n");
+            return NULL;
+        }
+        printf("Vetor aumentado para %d posições\n", *capacidade);
+    }
+
+    // Aloca memória para o nome
+    alunos[*tamanho].nome = (char*)malloc((strlen(nome) + 1) * sizeof(char));
+    if (alunos[*tamanho].nome == NULL) {
+        printf("Erro ao alocar memória para nome!\n");
+        return alunos;
+    }
+
+    // Copia o nome
+    strcpy(alunos[*tamanho].nome, nome);
+
+    // Preenche os demais campos
+    alunos[*tamanho].matricula = matricula;
+    alunos[*tamanho].nota1 = nota1;
+    alunos[*tamanho].nota2 = nota2;
+    alunos[*tamanho].nota3 = nota3;
+
+    (*tamanho)++; // Incrementa o tamanho atual
+    return alunos;
 }
 
-// Função responsável por buscar o aluno dentro de um vetor de alunos pela matricula
-int buscar_aluno(Aluno *alunos[], int tamanho_vetor, int matricula) {
-    // Laço de repetição que percorre o vetor
-    for (int i = 0; i < tamanho_vetor; i++) {
-        // Caso a matricula desejada seja encontrada no vetor, a função retorna 1
-        if (alunos[i]->matricula == matricula) {
-            return 1;
+// Função para buscar aluno por matrícula
+Aluno* buscar_aluno(Aluno *alunos, int tamanho, int matricula) {
+    for (int i = 0; i < tamanho; i++) {
+        if (alunos[i].matricula == matricula) {
+            return &alunos[i]; // Retorna o endereço do aluno encontrado
         }
     }
-    // Caso a matricula não seja encontrada, a função retorna -1
-    return -1;
+    return NULL; // Retorna NULL se não encontrou
 }
 
-// Função responsável por calcular a média do aluno
-// O parâmetro é um ponteiro do tipo Aluno (struct)
-float calcular_media(Aluno *aluno) {
-    return (aluno->nota1 + aluno->nota2 + aluno->nota3) / 3.0;
+// Função para calcular a média de um aluno
+float calcular_media(Aluno aluno) {
+    return (aluno.nota1 + aluno.nota2 + aluno.nota3) / 3.0f;
+}
+
+// Função para liberar toda a memória alocada
+void liberar_memoria(Aluno *alunos, int tamanho) {
+    for (int i = 0; i < tamanho; i++) {
+        free(alunos[i].nome); // Libera a memória do nome
+    }
+    free(alunos); // Libera o vetor de alunos
+    printf("Memória liberada com sucesso!\n");
+}
+
+// Função para exibir todos os alunos
+void exibir_alunos(Aluno *alunos, int tamanho) {
+    printf("\n=== LISTA DE ALUNOS ===\n");
+    for (int i = 0; i < tamanho; i++) {
+        printf("Aluno %d:\n", i + 1);
+        printf("  Nome: %s\n", alunos[i].nome);
+        printf("  Matrícula: %d\n", alunos[i].matricula);
+        printf("  Notas: %.1f, %.1f, %.1f\n", alunos[i].nota1, alunos[i].nota2, alunos[i].nota3);
+        printf("  Média: %.2f\n\n", calcular_media(alunos[i]));
+    }
 }
 
 int main() {
-    // Criando um vetor de ponteiros do tipo Aluno com 5 posições
-    Aluno *p[5];
-    int i;
+    int capacidade = 2;  // Capacidade inicial do vetor
+    int tamanho = 0;     // Número atual de alunos no vetor
+    Aluno *alunos = NULL; // Vetor de alunos
 
-    // Inserindo alguns alunos para testar
-    p[0] = inserir_novo_aluno("Julio", 101, 7.0, 8.0, 9.0);
-    p[1] = inserir_novo_aluno("Carlos", 102, 6.0, 7.5, 8.0);
-    p[2] = inserir_novo_aluno("Pedro", 103, 9.0, 9.5, 9.5);
-    p[3] = inserir_novo_aluno("Pedro Henrique", 104, 5.0, 6.0, 7.0);
-    p[4] = inserir_novo_aluno("Luca", 105, 8.0, 8.5, 9.0);
+    // Aloca memória inicial
+    alunos = (Aluno*)malloc(capacidade * sizeof(Aluno));
+    if (alunos == NULL) {
+        printf("Erro ao alocar memória inicial!\n");
+        return 1;
+    }
 
-    // Testando a função de busca
-    int matricula_buscada = 102;
-    int verificar = buscar_aluno(p, 5, matricula_buscada);
+    printf("=== SISTEMA DE GERENCIAMENTO DE ALUNOS ===\n");
 
-    if (verificar == 1) {
-        printf("Aluno com matricula %d foi encontrado.\n", matricula_buscada);
+    // Inserindo alunos (o vetor aumentará automaticamente)
+    alunos = inserir_aluno(alunos, &tamanho, &capacidade, "João Silva", 1001, 8.5, 7.0, 9.0);
+    alunos = inserir_aluno(alunos, &tamanho, &capacidade, "Maria Santos", 1002, 9.0, 8.5, 7.5);
+    alunos = inserir_aluno(alunos, &tamanho, &capacidade, "Pedro Costa", 1003, 6.5, 7.0, 8.0);
+    alunos = inserir_aluno(alunos, &tamanho, &capacidade, "Ana Oliveira", 1004, 10.0, 9.5, 9.0);
+
+    // Exibe todos os alunos
+    exibir_alunos(alunos, tamanho);
+
+    // Busca por matrícula existente
+    printf("=== BUSCA POR MATRÍCULA ===\n");
+    Aluno *aluno_encontrado = buscar_aluno(alunos, tamanho, 1002);
+    if (aluno_encontrado != NULL) {
+        printf("Aluno encontrado:\n");
+        printf("  Nome: %s\n", aluno_encontrado->nome);
+        printf("  Média: %.2f\n", calcular_media(*aluno_encontrado));
     } else {
-        printf("Aluno com matricula %d nao foi encontrado.\n", matricula_buscada);
+        printf("Matrícula não encontrada!\n");
     }
 
-    // Testando a função de média
-    // Para calcular a média, você precisa de um ponteiro para o aluno, por isso acessamos p[0]
-    float media = calcular_media(p[0]);
-    printf("Media do aluno %s: %.2f\n", p[0]->nome, media);
-
-    // Liberando a memória alocada para cada aluno
-    for (i = 0; i < 5; i++) {
-        free(p[i]->nome);
-        free(p[i]);
+    // Busca por matrícula inexistente
+    aluno_encontrado = buscar_aluno(alunos, tamanho, 9999);
+    if (aluno_encontrado != NULL) {
+        printf("Aluno encontrado: %s\n", aluno_encontrado->nome);
+    } else {
+        printf("Matrícula 9999 não encontrada!\n");
     }
+
+    // Libera toda a memória alocada
+    liberar_memoria(alunos, tamanho);
 
     return 0;
 }

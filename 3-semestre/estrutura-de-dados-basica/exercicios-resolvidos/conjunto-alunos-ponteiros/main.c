@@ -86,7 +86,4 @@ int main(){
     float media;
     media = calcular_media(lista_alunos,quantidade_cadastrada,1);
     printf("Média: %.2f",media);
-
-
-
 }
